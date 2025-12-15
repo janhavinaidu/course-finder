@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
-import { SearchSection } from "@/components/SearchSection";
+import { SearchWithFilters } from "@/components/SearchWithFilters";
 import { CourseResults } from "@/components/CourseResults";
 import { LearningPath } from "@/components/LearningPath";
 import { NextRecommendations } from "@/components/NextRecommendations";
 import { Footer } from "@/components/Footer";
-import { getRecommendations, Course } from "@/lib/api";
+import { getRecommendations, Course, SearchFilters } from "@/lib/api";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -14,14 +14,15 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<SearchFilters>({});
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, filtersToUse: SearchFilters) => {
     setIsLoading(true);
     setSearchQuery(query);
     setError(null);
     
     try {
-      const results = await getRecommendations(query);
+      const results = await getRecommendations(query, filtersToUse);
       setCourses(results);
       setHasSearched(true);
       
@@ -62,9 +63,14 @@ const Index = () => {
 
       {/* Main content */}
       <main className="relative flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
-        <div className="w-full max-w-6xl mx-auto">
+        <div className="w-full max-w-7xl mx-auto">
           <HeroSection />
-          <SearchSection onSearch={handleSearch} isLoading={isLoading} />
+          <SearchWithFilters
+            onSearch={handleSearch}
+            isLoading={isLoading}
+            filters={filters}
+            onFiltersChange={setFilters}
+          />
           
           {error && (
             <div className="mt-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
@@ -72,9 +78,13 @@ const Index = () => {
             </div>
           )}
           
-          <CourseResults courses={courses} searchQuery={searchQuery} />
-          <LearningPath searchQuery={searchQuery} show={hasSearched && courses.length > 0} />
-          <NextRecommendations searchQuery={searchQuery} show={hasSearched && courses.length > 0} />
+          <CourseResults 
+            courses={courses} 
+            searchQuery={searchQuery}
+            onCoursesUpdate={setCourses}
+          />
+          <LearningPath searchQuery={searchQuery} show={hasSearched && courses.length > 0} courses={courses} />
+          <NextRecommendations searchQuery={searchQuery} show={hasSearched && courses.length > 0} courses={courses} />
         </div>
       </main>
 

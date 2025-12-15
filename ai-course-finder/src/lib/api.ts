@@ -9,6 +9,7 @@ export interface BackendCourseDetails {
   duration: string | null;
   level: string | null;
   rating: number | null;
+  price: string | null;
 }
 
 export interface BackendRecommendationResponse {
@@ -27,6 +28,7 @@ export interface Course {
   url: string;
   duration?: string | null;
   rating?: number | null;
+  price?: string | null;
 }
 
 /**
@@ -49,9 +51,10 @@ function mapBackendToFrontendCourse(
     return "intermediate";
   };
 
-  // Determine pricing (default to "free" if not specified)
-  // You can enhance this logic based on your needs
-  const pricing: "free" | "paid" = "free"; // Default assumption
+  // Determine pricing based on price field
+  const priceStr = backendCourse.price?.toLowerCase() || "";
+  const isFree = priceStr.includes("free") || priceStr === "" || priceStr === "not specified" || priceStr === "not available";
+  const pricing: "free" | "paid" = isFree ? "free" : "paid";
 
   return {
     id: index + 1,
@@ -63,17 +66,37 @@ function mapBackendToFrontendCourse(
     url: backendCourse.url,
     duration: backendCourse.duration,
     rating: backendCourse.rating,
+    price: backendCourse.price,
   };
+}
+
+export interface SearchFilters {
+  levels?: string[];
+  pricings?: string[];
+  providers?: string[];
+  durations?: string[];
 }
 
 /**
  * Fetches course recommendations from the backend API
  */
-export const getRecommendations = async (topic: string): Promise<Course[]> => {
-  const url = `${API_BASE_URL}/recommend?topic=${encodeURIComponent(topic)}`;
+export const getRecommendations = async (
+  topic: string,
+  filters?: SearchFilters
+): Promise<Course[]> => {
+  const params = new URLSearchParams({ topic });
+  
+  if (filters) {
+    filters.levels?.forEach((lvl) => params.append('level', lvl));
+    filters.pricings?.forEach((price) => params.append('pricing', price));
+    filters.providers?.forEach((provider) => params.append('provider', provider));
+    filters.durations?.forEach((duration) => params.append('duration', duration));
+  }
+  
+  const url = `${API_BASE_URL}/recommend?${params.toString()}`;
   
   try {
-    console.log(`[API] Fetching recommendations for: ${topic}`);
+    console.log(`[API] Fetching recommendations for: ${topic}`, filters);
     console.log(`[API] URL: ${url}`);
     
     const response = await fetch(url, {

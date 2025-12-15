@@ -1,4 +1,4 @@
-import { ExternalLink, Clock, Star } from "lucide-react";
+import { ExternalLink, Clock, Star, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Course } from "@/lib/api";
@@ -6,6 +6,8 @@ import { Course } from "@/lib/api";
 interface CourseCardProps {
   course: Course;
   index: number;
+  onCompare?: (course: Course) => void;
+  isSelectedForCompare?: boolean;
 }
 
 const levelConfig = {
@@ -19,7 +21,7 @@ const pricingConfig = {
   paid: { label: "Paid", className: "badge-paid" },
 };
 
-export const CourseCard = ({ course, index }: CourseCardProps) => {
+export const CourseCard = ({ course, index, onCompare, isSelectedForCompare }: CourseCardProps) => {
   const levelInfo = levelConfig[course.level];
   const pricingInfo = pricingConfig[course.pricing];
 
@@ -85,16 +87,29 @@ export const CourseCard = ({ course, index }: CourseCardProps) => {
           {course.description}
         </p>
 
-        {/* CTA Button */}
-        <Button
-          variant="glass"
-          size="sm"
-          className="w-full group/btn"
-          onClick={() => window.open(course.url, "_blank")}
-        >
-          <span>Open Course</span>
-          <ExternalLink className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
-        </Button>
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          {onCompare && (
+            <Button
+              variant={isSelectedForCompare ? "default" : "outline"}
+              size="sm"
+              className="flex-1 group/btn"
+              onClick={() => onCompare(course)}
+            >
+              <Scale className="w-4 h-4" />
+              <span>{isSelectedForCompare ? "Selected" : "Compare"}</span>
+            </Button>
+          )}
+          <Button
+            variant="glass"
+            size="sm"
+            className={onCompare ? "flex-1 group/btn" : "w-full group/btn"}
+            onClick={() => window.open(course.url, "_blank")}
+          >
+            <span>Open Course</span>
+            <ExternalLink className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+          </Button>
+        </div>
       </div>
     </div>
   );
