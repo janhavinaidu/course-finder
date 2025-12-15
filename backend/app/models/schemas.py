@@ -10,6 +10,7 @@ class CourseDetails(BaseModel):
     duration: Optional[str] = Field(None, description="Estimated duration of the course")
     level: Optional[str] = Field(None, description="Difficulty level (e.g., Beginner, Intermediate, Advanced)")
     rating: Optional[float] = Field(None, description="Average rating if available")
+    price: Optional[str] = Field(None, description="Price or cost of the course (e.g., 'Free', '$49.99', 'Paid')")
 
 class RecommendationResponse(BaseModel):
     """Response model for course recommendations."""
