@@ -104,7 +104,7 @@ const getLearningPath = (query: string, courses: Course[] = []): LearningStep[] 
 
 
 export const LearningPath = ({ searchQuery, show, courses = [] }: LearningPathProps) => {
-  if (!show) return null;
+  if (!show || courses.length === 0) return null;
 
   const learningPath = getLearningPath(searchQuery, courses);
 
@@ -165,9 +165,9 @@ export const LearningPath = ({ searchQuery, show, courses = [] }: LearningPathPr
                     <div className="sm:w-56 p-3 rounded-lg bg-secondary/50 border border-border/50 flex-shrink-0">
                       <p className="text-xs font-medium text-muted-foreground mb-1.5">Recommended Course</p>
                       <p className="font-semibold text-foreground mb-2.5 text-xs sm:text-sm line-clamp-2">{step.courseName}</p>
-                      <Button 
-                        variant="glass" 
-                        size="sm" 
+                      <Button
+                        variant="glass"
+                        size="sm"
                         className="w-full text-xs h-8 sm:h-9"
                         onClick={() => step.courseUrl && step.courseUrl !== "#" && window.open(step.courseUrl, "_blank")}
                         disabled={!step.courseUrl || step.courseUrl === "#"}

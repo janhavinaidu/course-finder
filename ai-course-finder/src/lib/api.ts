@@ -85,25 +85,22 @@ export const getRecommendations = async (
   filters?: SearchFilters
 ): Promise<Course[]> => {
   const params = new URLSearchParams({ topic });
-  
+
   if (filters) {
     filters.levels?.forEach((lvl) => params.append('level', lvl));
     filters.pricings?.forEach((price) => params.append('pricing', price));
     filters.providers?.forEach((provider) => params.append('provider', provider));
     filters.durations?.forEach((duration) => params.append('duration', duration));
   }
-  
+
   const url = `${API_BASE_URL}/recommend?${params.toString()}`;
-  
+
   try {
     console.log(`[API] Fetching recommendations for: ${topic}`, filters);
     console.log(`[API] URL: ${url}`);
-    
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
     console.log(`[API] Response status: ${response.status}`);
@@ -111,26 +108,26 @@ export const getRecommendations = async (
     if (!response.ok) {
       const errorText = await response.text();
       let errorMessage = `HTTP error! status: ${response.status}`;
-      
+
       try {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.detail || errorMessage;
       } catch {
         errorMessage = errorText || errorMessage;
       }
-      
+
       console.error(`[API] Error response:`, errorMessage);
       throw new Error(errorMessage);
     }
 
     const data: BackendRecommendationResponse = await response.json();
     console.log(`[API] Received ${data.results.length} courses`);
-    
+
     // Map backend courses to frontend format
-    const mappedCourses = data.results.map((course, index) => 
+    const mappedCourses = data.results.map((course, index) =>
       mapBackendToFrontendCourse(course, index)
     );
-    
+
     return mappedCourses;
   } catch (error) {
     // Enhanced error logging
@@ -138,7 +135,7 @@ export const getRecommendations = async (
       console.error('[API] Network error - is the backend running?', error);
       throw new Error('Cannot connect to backend. Make sure the backend server is running on http://localhost:8000');
     }
-    
+
     console.error('[API] Error fetching recommendations:', error);
     throw error;
   }

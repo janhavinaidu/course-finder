@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 // FIX: Import XCircle (the correct name for XCircleIcon)
-import { ArrowRight, Loader2, XCircle, ExternalLink } from "lucide-react"; 
+import { ArrowRight, Loader2, XCircle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Course } from "@/lib/api";
 
@@ -18,49 +18,86 @@ interface NextRecommendationsProps {
   courses?: Course[];
 }
 
-// Helper function to map API courses to our recommendation format
-const mapCoursesToRecommendations = (courses: Course[]): Recommendation[] => {
-  return courses.slice(0, 3).map((course, index) => ({
-    id: course.id || index,
-    title: course.name || `Course ${index + 1}`,
-    description: course.description || "Check out this course to enhance your skills",
-    url: course.url,
-    type: "course" as const,
-  }));
+// Helper function to map API courses to our recommendation format with real analysis
+const analyzeAndMapCourses = (allCourses: Course[], query: string): Recommendation[] => {
+  const recommendations: Recommendation[] = [];
+
+  // 1. Identify unique courses (skip first 3 used in Learning Path)
+  const remainingCourses = [...allCourses].slice(3);
+
+  if (remainingCourses.length > 0) {
+    // Sort by difficulty (Advanced/Intermediate first)
+    const sorted = remainingCourses.sort((a, b) => {
+      const levelScore = { advanced: 3, intermediate: 2, beginner: 1 };
+      const aScore = a.level ? levelScore[a.level as keyof typeof levelScore] || 1 : 1;
+      const bScore = b.level ? levelScore[b.level as keyof typeof levelScore] || 1 : 1;
+      return bScore - aScore;
+    });
+
+    // Take up to 3 real courses
+    sorted.slice(0, 3).forEach((course, index) => {
+      const desc = course.description.toLowerCase();
+      let type: "topic" | "project" | "course" = "course";
+
+      if (desc.includes("project") || desc.includes("build") || desc.includes("capstone") || desc.includes("portfolio")) {
+        type = "project";
+      } else if (desc.includes("specialization") || desc.includes("series") || desc.includes("professional certificate")) {
+        type = "topic";
+      }
+
+      recommendations.push({
+        id: course.id || index + 100,
+        title: course.name,
+        description: course.description || "Advance your skills with this deeper dive into the subject.",
+        url: course.url,
+        type
+      });
+    });
+  }
+
+  // 2. Fill remaining slots to guarantee exactly 3 items with real site links
+  const portalLinks = [
+    {
+      title: `Explore Advanced ${query} on Coursera`,
+      description: "Find professional specializations and master's level content.",
+      url: `https://www.coursera.org/search?query=${encodeURIComponent(query + ' advanced')}`,
+      type: "topic" as const
+    },
+    {
+      title: `${query} Projects on Udemy`,
+      description: "Hands-on implementation courses and real-world project tutorials.",
+      url: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(query + ' project')}`,
+      type: "project" as const
+    },
+    {
+      title: `Academic Mastery on edX`,
+      description: "University-grade courses to achieve expert-level proficiency.",
+      url: `https://www.edx.org/search?q=${encodeURIComponent(query + ' advanced')}`,
+      type: "course" as const
+    }
+  ];
+
+  while (recommendations.length < 3) {
+    const fallback = portalLinks[recommendations.length];
+    recommendations.push({
+      id: 500 + recommendations.length,
+      ...fallback
+    });
+  }
+
+  return recommendations;
 };
 
-// Fallback recommendations in case API fails
-const getFallbackRecommendations = (): Recommendation[] => [
-  {
-    id: 1,
-    title: "Explore Related Topics",
-    description: "Discover adjacent skills to complement your learning",
-    type: "topic",
-  },
-  {
-    id: 2,
-    title: "Join a Community",
-    description: "Connect with learners and experts in the field",
-    type: "course",
-  },
-  {
-    id: 3,
-    title: "Start a Side Project",
-    description: "Apply your new skills to build something real",
-    type: "project",
-  },
-];
-
 const typeColors = {
-  topic: "from-blue-500/20 to-cyan-500/20 border-blue-500/30",
-  project: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30",
-  course: "from-violet-500/20 to-purple-500/20 border-violet-500/30",
+  topic: "from-blue-500/20 to-cyan-500/20 border-blue-500/30",
+  project: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30",
+  course: "from-violet-500/20 to-purple-500/20 border-violet-500/30",
 };
 
 const typeLabels = {
-  topic: "Topic",
-  project: "Project",
-  course: "Course",
+  topic: "Specialization",
+  project: "Implementation",
+  course: "Advanced Study",
 };
 
 export const NextRecommendations = ({ searchQuery, show, courses = [] }: NextRecommendationsProps) => {
@@ -68,15 +105,10 @@ export const NextRecommendations = ({ searchQuery, show, courses = [] }: NextRec
 
   useEffect(() => {
     if (!show) return;
-    
-    if (courses.length > 0) {
-      // Use provided courses
-      const mapped = mapCoursesToRecommendations(courses);
-      setRecommendations(mapped);
-    } else {
-      // Use fallback recommendations
-      setRecommendations(getFallbackRecommendations());
-    }
+
+    // Perform real analysis on available courses to provide exactly 3 suggestions with links
+    const analyzed = analyzeAndMapCourses(courses, searchQuery);
+    setRecommendations(analyzed);
   }, [searchQuery, show, courses]);
 
   if (!show) return null;
@@ -142,7 +174,7 @@ export const NextRecommendations = ({ searchQuery, show, courses = [] }: NextRec
             </div>
           );
         })}
-      </div>
-    </section>
-  );
+      </div>
+    </section>
+  );
 };
