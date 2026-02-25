@@ -141,8 +141,11 @@ export const getRecommendations = async (
   } catch (error) {
     // Enhanced error logging
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error('[API] Network error - is the backend running?', error);
-      throw new Error('Cannot connect to backend. Make sure the backend server is running on http://localhost:8000');
+      console.error(`[API] Network error - cannot reach: ${API_BASE_URL}`, error);
+      const advice = import.meta.env.PROD
+        ? 'Check your Vercel environment variables and Render backend status.'
+        : 'Make sure your local backend is running (npm run dev in backend folder).';
+      throw new Error(`Cannot connect to backend at ${API_BASE_URL}. ${advice}`);
     }
 
     console.error('[API] Error fetching recommendations:', error);
