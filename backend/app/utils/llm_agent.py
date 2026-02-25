@@ -101,15 +101,17 @@ def initialize_agent_executor(tools: list):
             temperature=0
         )
 
-        # Create agent using LangChain 0.2.x API
-        agent_graph = create_agent(
-            model=llm,
+        # Initialize agent using LangChain legacy (but stable for this setup) API
+        agent_executor = initialize_agent(
             tools=tools,
-            debug=True,  # Equivalent to verbose=True
+            llm=llm,
+            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            verbose=True,
+            handle_parsing_errors=True
         )
 
         logger.info("Groq agent initialized successfully")
-        return agent_graph
+        return agent_executor
 
     except Exception as e:
         logger.error(f"Failed to initialize agent: {e}")
