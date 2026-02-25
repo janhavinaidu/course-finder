@@ -13,7 +13,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 
 # LangChain 0.2.x imports
-from langchain.agents import create_agent
+
+from langchain.agents import initialize_agent, AgentType
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import BaseTool
