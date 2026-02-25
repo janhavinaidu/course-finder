@@ -1,5 +1,14 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+// Warn developers if the env var is missing when running a production build
+if (!import.meta.env.VITE_API_BASE_URL && import.meta.env.PROD) {
+  console.warn(
+    '[API] VITE_API_BASE_URL is not set! ' +
+    'Add it to your Vercel project under Settings → Environment Variables. ' +
+    'Example: https://your-backend.onrender.com/api'
+  );
+}
+
 // Backend CourseDetails schema
 export interface BackendCourseDetails {
   title: string;

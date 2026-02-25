@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: course-recommender-api
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    rootDir: .
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_CSE_ID
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:5173
+        # ⚠️ Update this with your real Vercel URL after deploying the frontend

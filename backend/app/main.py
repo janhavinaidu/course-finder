@@ -21,14 +21,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS configuration
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",  # Vite default port
-    "http://127.0.0.1:5173",
-    "https://your-react-frontend.com"
-]
+# CORS configuration — driven by the ALLOWED_ORIGINS env variable.
+# Set it in your hosting dashboard (Render) as a comma-separated list, e.g.:
+#   https://your-app.vercel.app,http://localhost:5173
+_raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
+)
+origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
