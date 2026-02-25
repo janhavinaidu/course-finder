@@ -22,13 +22,17 @@ app = FastAPI(
 )
 
 # CORS configuration — driven by the ALLOWED_ORIGINS env variable.
-# Set it in your hosting dashboard (Render) as a comma-separated list, e.g.:
-#   https://your-app.vercel.app,http://localhost:5173
 _raw_origins = os.getenv(
     "ALLOWED_ORIGINS",
     "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://course-finder-six-indol.vercel.app"
 )
-origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
+# Parse and clean origins (ensure no trailing slashes, which break CORS)
+origins = [o.strip().rstrip("/") for o in _raw_origins.split(",") if o.strip()]
+
+# Log origins on startup to help with production debugging
+print(f"✅ CORS Allowed Origins: {origins}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
