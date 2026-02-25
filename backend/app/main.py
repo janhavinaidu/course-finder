@@ -44,6 +44,11 @@ app.add_middleware(
 # Include the main router
 app.include_router(router=recommend.router, prefix="/api", tags=["recommendations"])
 
+# Added to prevent 404 when visiting /api directly
+@app.get("/api")
+def api_root():
+    return {"message": "Course Finder API is running. Use /api/recommend for courses."}
+
 # --- HEALTH CHECK ---
 @app.get("/")
 def health_check():
