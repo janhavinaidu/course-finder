@@ -65,8 +65,8 @@ class GoogleSearchTool(BaseTool):
             return f"Error performing search: {str(e)}"
     
     async def _arun(self, query: str) -> str:
-        """Async version of the search."""
-        return self._run(query)
+        """Async version of the search using a thread pool."""
+        return await asyncio.to_thread(self._run, query)
 
 
 def initialize_search_tool():
@@ -107,7 +107,9 @@ def initialize_agent_executor(tools: list):
             llm=llm,
             agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True,
-            handle_parsing_errors=True
+            handle_parsing_errors=True,
+            max_iterations=5,          # Prevent infinite loops
+            max_execution_time=60       # Don't hang the worker too long
         )
 
         logger.info("Groq agent initialized successfully")
@@ -411,7 +413,8 @@ async def run_cohere_agent_for_recommendations(
         
         try:
             # Execute the agent using LangChain legacy API
-            result = agent_executor.invoke({"input": query})
+            # Wrapped in to_thread to prevent blocking the FastAPI event loop
+            result = await asyncio.to_thread(agent_executor.invoke, {"input": query})
             
             # The result from initialize_agent is a dict with an "output" key
             result_text = result.get("output", "")
@@ -524,7 +527,8 @@ Description: {course.description}"""
         
         try:
             # Execute the agent
-            result = agent_executor.invoke({"input": query})
+            # Wrapped in to_thread to prevent blocking the FastAPI event loop
+            result = await asyncio.to_thread(agent_executor.invoke, {"input": query})
             
             # Extract the response
             result_text = result.get("output", "")
