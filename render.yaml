@@ -16,4 +16,6 @@ services:
       - key: GOOGLE_CSE_ID
         sync: false
       - key: ALLOWED_ORIGINS
-        value: http://localhost:5173
+        sync: false
+        # 💡 Set this in the Render dashboard to:
+        # https://course-finder-six-indol.vercel.app,http://localhost:5173
