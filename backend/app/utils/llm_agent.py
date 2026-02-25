@@ -410,19 +410,12 @@ async def run_cohere_agent_for_recommendations(
         logger.debug(f"Executing agent with query: {query[:100]}...")
         
         try:
-            # Execute the agent using LangChain 0.2.x API
-            result = agent_executor.invoke({
-                "messages": [HumanMessage(content=query)]
-            })
+            # Execute the agent using LangChain legacy API
+            result = agent_executor.invoke({"input": query})
             
-            # Extract the final message content from the result
-            # The result is a dict with "messages" key containing the conversation
-            messages = result.get("messages", [])
-            if messages:
-                # Get the last AI message which contains the final answer
-                final_message = messages[-1]
-                result_text = final_message.content if hasattr(final_message, 'content') else str(final_message)
-            else:
+            # The result from initialize_agent is a dict with an "output" key
+            result_text = result.get("output", "")
+            if not result_text:
                 result_text = str(result)
             
             logger.debug(f"Raw agent response: {result_text[:500]}...")
@@ -531,16 +524,11 @@ Description: {course.description}"""
         
         try:
             # Execute the agent
-            result = agent_executor.invoke({
-                "messages": [HumanMessage(content=query)]
-            })
+            result = agent_executor.invoke({"input": query})
             
-            # Extract the final message content
-            messages = result.get("messages", [])
-            if messages:
-                final_message = messages[-1]
-                result_text = final_message.content if hasattr(final_message, 'content') else str(final_message)
-            else:
+            # Extract the response
+            result_text = result.get("output", "")
+            if not result_text:
                 result_text = str(result)
             
             logger.debug(f"Raw refinement response: {result_text[:500]}...")
